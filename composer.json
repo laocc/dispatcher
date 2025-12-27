@@ -1,0 +1,20 @@
+{
+  "name": "laocc/dispatcher",
+  "description": "The simplest PHP controller dispatcher",
+  "homepage": "https://github.com/laocc/dispatcher",
+  "authors": [
+    {
+      "name": "fazo",
+      "email": "fazo@qq.com"
+    }
+  ],
+  "require": {
+    "php": ">8.1",
+    "ext-json": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "dispatcher\\": "core/"
+    }
+  }
+}
