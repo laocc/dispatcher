@@ -9,9 +9,8 @@ final class Dispatcher
 {
     public function __construct()
     {
-        if (!defined('_ROOT')) {
-            define('_ROOT', $this->getRootPath());
-        }
+        if (!defined('_ROOT')) define('_ROOT', $this->getRootPath());
+        if (!defined('_RUNTIME')) define('_RUNTIME', _ROOT . '/runtime');
     }
 
     private function getRootPath(): string
@@ -30,7 +29,7 @@ final class Dispatcher
     {
         $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
         $segments = array_filter(explode('/', trim(strtok($requestUri, '?'), '/')));
-        $method = ucfirst(strtolower(getenv('REQUEST_METHOD') ?: 'GET'));
+        $method = ucfirst(strtolower($_SERVER['REQUEST_METHOD'] ?? 'GET'));
 
         $controllerName = !empty($segments[0])
             ? ucfirst(strtolower($segments[0])) . 'Controller'
@@ -82,8 +81,13 @@ final class Dispatcher
             $json = ['error' => 1, 'message' => $call];
 
         } elseif (is_int($call)) {
-            $code = $call;
-            $json = ['error' => 1, 'message' => "error code={$call}"];
+            if ($call === 200) {
+                $code = 200;
+                $json = ['error' => 0, 'message' => "SUCCESS"];
+            } else {
+                $code = $call;
+                $json = ['error' => 1, 'message' => "error code={$call}"];
+            }
 
         } elseif (is_bool($call)) {
             $code = $call ? 200 : 500;
@@ -91,11 +95,16 @@ final class Dispatcher
 
         } else {
             $code = 200;
-            $json = ['error' => 0, 'data' => $call];
+            if (isset($call['error']) or isset($call['success'])) $json = $call;
+            else $json = ['error' => 0, 'data' => $call];
         }
 
         http_response_code($code);
         header("Content-Type: application/json; charset=UTF-8");
+        header('Access-Control-Allow-Origin: *');
+        header('Access-Control-Allow-Methods: GET, POST');
+        header('Access-Control-Allow-Headers: Content-Type');
+
         echo json_encode($json, JSON_UNESCAPED_UNICODE);
 
     }
